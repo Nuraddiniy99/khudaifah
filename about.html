@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Khudaifah | About Us</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; color: #1a1a1a; -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3, h4, .serif { font-family: 'Playfair Display', serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        html { scroll-behavior: smooth; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+        .parallax-bg {
+            background-attachment: fixed;
+            background-position: center;
+            background-size: cover;
+        }
+        @media (max-width: 768px) {
+            .parallax-bg { background-attachment: scroll; }
+        }
+        .team-card:hover img {
+            transform: scale(1.08);
+        }
+        .team-card:hover .overlay {
+            opacity: 1;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { black: '#000000', white: '#ffffff', gray: '#f8f8f8', darkgray: '#333333' }
+                    },
+                    screens: { 'xs': '375px' }
+                }
+            }
+        }
+
+        // Simple scroll reveal
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = document.querySelectorAll('.fade-in');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            elements.forEach(el => observer.observe(el));
+        });
+    </script>
+</head>
+<body class="bg-white antialiased pb-24 md:pb-0">
+
+    <!-- Header Desktop (sama seperti index.html) -->
+    <header class="hidden md:block sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <nav class="flex gap-8 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-800">
+                <a href="index.html#shop" onclick="window.location.href='index.html';">Shop</a>
+                <a href="index.html">Home</a>
+                <a href="https://wa.me/6285880856341" target="_blank">Tanya</a>
+                <a href="about.html" class="text-black border-b-2 border-black">About</a>
+            </nav>
+            <div class="text-3xl font-serif font-bold tracking-[0.3em] cursor-pointer flex items-center gap-3" onclick="window.location.href='index.html'">
+                <img src="assets/logoteks.png" alt="Logo" class="h-10 w-auto object-contain">
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="relative group">
+                    <input type="text" placeholder="SEARCH..." class="border-b border-transparent focus:border-black outline-none text-xs w-24 focus:w-48 transition-all duration-500 bg-transparent text-right">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </div>
+                <div class="relative cursor-pointer">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    <span class="absolute -top-1 -right-2 bg-black text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Header Mobile (sama) -->
+    <header class="md:hidden fixed top-0 w-full z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 flex justify-center py-4">
+        <div class="text-2xl font-serif font-bold tracking-[0.3em] cursor-pointer flex items-center gap-2" onclick="window.location.href='index.html'">
+            <img src="assets/logoteks.png" alt="Logo" class="h-8 w-auto object-contain">
+        </div>
+    </header>
+
+    <!-- Hero Visioner -->
+    <section class="relative h-[70vh] md:h-[90vh] flex items-center justify-center overflow-hidden parallax-bg fade-in" 
+             style="background-image: url('https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2000');">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/40"></div>
+        <div class="relative z-10 text-center px-6 max-w-4xl">
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-[0.25em] text-white uppercase mb-6 leading-tight">
+                Vision Beyond Modesty
+            </h1>
+            <p class="text-lg md:text-2xl text-white/90 font-light tracking-wide max-w-3xl mx-auto">
+                Khudaifah bukan sekadar busana — ia adalah pernyataan identitas, keanggunan modern, dan penghormatan terhadap nilai timeless.
+            </p>
+        </div>
+    </section>
+
+    <!-- Our Story -->
+    <section class="py-20 md:py-32 bg-gradient-to-b from-white to-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto text-center fade-in">
+                <h2 class="text-4xl md:text-5xl font-serif tracking-[0.15em] mb-10">Our Story</h2>
+                <p class="text-lg md:text-xl leading-relaxed text-gray-700 mb-10">
+                    Didirikan dengan visi untuk mendefinisikan ulang modest fashion di era kontemporer, Khudaifah lahir dari hasrat menggabungkan kesederhanaan yang bermartabat dengan detail inovatif dan kualitas premium. 
+                    Kami percaya bahwa busana bukan hanya penutup tubuh, melainkan medium untuk mengekspresikan kepribadian, keyakinan, dan keindahan batin.
+                </p>
+                <p class="text-lg md:text-xl leading-relaxed text-gray-700">
+                    Setiap jahitan, setiap kain, dan setiap desain adalah hasil perenungan mendalam untuk menciptakan pakaian yang tidak hanya indah dipandang, tetapi juga nyaman dikenakan dalam segala aktivitas — dari momen sehari-hari hingga acara istimewa.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tim / Owner & Developer -->
+    <section class="py-20 md:py-32 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl md:text-5xl font-serif tracking-[0.15em]">The Minds Behind Khudaifah</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                    Tim kecil namun berdedikasi yang menggerakkan visi besar ini.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-12">
+                <!-- Owner / Founder -->
+                <div class="group fade-in">
+                    <div class="team-card relative overflow-hidden rounded-2xl shadow-xl bg-white">
+                        <div class="h-96 md:h-[28rem] overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800" 
+                                 alt="Founder Khudaifah" 
+                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <h3 class="text-2xl font-serif font-bold">Ahmad Khudaifah</h3>
+                            <p class="text-sm uppercase tracking-wider mt-1 opacity-90">Founder & Creative Director</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center md:text-left">
+                        <p class="text-gray-700 leading-relaxed">
+                            Visioner di balik Khudaifah. Dengan pengalaman lebih dari 10 tahun di industri modest fashion, ia mengarahkan setiap koleksi dengan perpaduan sempurna antara estetika modern dan nilai tradisional.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Developer / Tim Lain -->
+                <div class="group fade-in">
+                    <div class="team-card relative overflow-hidden rounded-2xl shadow-xl bg-white">
+                        <div class="h-96 md:h-[28rem] overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800" 
+                                 alt="Lead Designer" 
+                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <h3 class="text-2xl font-serif font-bold">Sarah Aulia</h3>
+                            <p class="text-sm uppercase tracking-wider mt-1 opacity-90">Lead Designer</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center md:text-left">
+                        <p class="text-gray-700 leading-relaxed">
+                            Otak di balik pola dan siluet inovatif. Menggabungkan teknik tradisional dengan pendekatan eksperimental untuk menciptakan busana yang ikonik.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tambah anggota tim lain sesuai kebutuhan -->
+                <div class="group fade-in">
+                    <div class="team-card relative overflow-hidden rounded-2xl shadow-xl bg-white">
+                        <div class="h-96 md:h-[28rem] overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=800" 
+                                 alt="Operations Lead" 
+                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <h3 class="text-2xl font-serif font-bold">Rizki Pratama</h3>
+                            <p class="text-sm uppercase tracking-wider mt-1 opacity-90">Operations & Digital</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center md:text-left">
+                        <p class="text-gray-700 leading-relaxed">
+                            Memastikan setiap proses — dari produksi hingga pengalaman digital — berjalan mulus dan sesuai visi brand.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Vision & Values -->
+    <section class="py-20 md:py-32 bg-black text-white">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-16 items-center fade-in">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-serif tracking-[0.15em] mb-10">Our Vision</h2>
+                    <p class="text-xl leading-relaxed opacity-90">
+                        Menjadi lambang modest fashion visioner yang menginspirasi wanita modern untuk tampil elegan tanpa kompromi pada nilai, identitas, dan kenyamanan — di mana kesederhanaan bertemu kemewahan, dan tradisi berpadu dengan inovasi.
+                    </p>
+                </div>
+                <div class="space-y-10">
+                    <div class="flex gap-6 items-start">
+                        <i class="fa-solid fa-gem text-4xl mt-1"></i>
+                        <div>
+                            <h3 class="text-2xl font-serif mb-3">Craftsmanship Premium</h3>
+                            <p class="opacity-80">Material terpilih & jahitan presisi untuk ketahanan dan kenyamanan jangka panjang.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 items-start">
+                        <i class="fa-solid fa-lightbulb text-4xl mt-1"></i>
+                        <div>
+                            <h3 class="text-2xl font-serif mb-3">Desain Visioner</h3>
+                            <p class="opacity-80">Siluet kontemporer yang tetap menghormati esensi modest wear.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 items-start">
+                        <i class="fa-solid fa-heart text-4xl mt-1"></i>
+                        <div>
+                            <h3 class="text-2xl font-serif mb-3">Inclusivity & Empowerment</h3>
+                            <p class="opacity-80">Dirancang untuk segala bentuk tubuh dan gaya hidup modern.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- CTA -->
+    <section class="py-20 md:py-32 bg-white text-black text-center">
+        <div class="container mx-auto px-6 fade-in">
+            <h2 class="text-4xl md:text-5xl font-serif tracking-[0.2em] mb-8">Bergabunglah dengan Perjalanan Kami</h2>
+            <p class="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto mb-10">
+                Temukan busana yang tidak hanya mengikuti tren, tetapi juga menciptakan cerita dan identitas Anda sendiri.
+            </p>
+            <a href="index.html" class="inline-block px-12 py-5 bg-black text-gray-300 font-bold uppercase tracking-[0.3em] hover:bg-gray-600 transition duration-300 rounded-full">
+                Jelajahi Koleksi
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer (persis sama dengan index.html) -->
+    <footer class="bg-black text-white pt-20 pb-32 md:pb-10 mt-20">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-[10px] uppercase tracking-widest">
+            <div class="md:col-span-1">
+                <h4 class="text-2xl font-serif font-bold tracking-[0.2em] mb-8">KHUDAIFAH</h4>
+                <p class="text-gray-500 normal-case tracking-normal mb-8 leading-relaxed">Defining modern modesty with timeless elegance and superior craftsmanship for the visionary individual.</p>
+                <div class="flex gap-6 text-lg text-gray-400">
+                    <i class="fa-brands fa-instagram hover:text-white transition"></i>
+                    <i class="fa-brands fa-tiktok hover:text-white transition"></i>
+                    <i class="fa-brands fa-whatsapp hover:text-white transition"></i>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-bold mb-6 text-gray-300">Discovery</h4>
+                <ul class="space-y-3 text-gray-500">
+                    <li class="hover:text-white cursor-pointer transition">New Arrivals</li>
+                    <li class="hover:text-white cursor-pointer transition">Lookbook 2026</li>
+                    <li class="hover:text-white cursor-pointer transition">Editor's Pick</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-6 text-gray-300">Support</h4>
+                <ul class="space-y-3 text-gray-500">
+                    <li class="hover:text-white cursor-pointer transition">Shipping & Returns</li>
+                    <li class="hover:text-white cursor-pointer transition">Size Guide</li>
+                    <li class="hover:text-white cursor-pointer transition">FAQ</li>
+                    <li class="hover:text-white cursor-pointer transition">Contact Us</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-6 text-gray-300">Newsletter</h4>
+                <p class="normal-case tracking-normal text-gray-500 mb-6">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                <div class="flex border-b border-gray-800 pb-2 group focus-within:border-white transition">
+                    <input type="email" placeholder="ENTER YOUR EMAIL" class="bg-transparent w-full outline-none text-[10px] placeholder-gray-600 focus:placeholder-gray-400">
+                    <button class="font-bold text-gray-500 hover:text-white transition">SUBMIT</button>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-gray-800 text-[9px] mt-20 pt-8 border-t border-gray-900">
+            © 2026 KHUDAIFAH OFFICIAL. POWERED BY VISION.
+        </div>
+    </footer>
+
+    <!-- Bottom Nav Mobile (sama seperti index.html) -->
+    <div class="md:hidden fixed bottom-6 left-4 right-4 z-50">
+        <nav class="glass-nav rounded-2xl flex justify-between items-center px-5 py-2 text-gray-500">
+            <div class="flex flex-col items-center gap-1 cursor-pointer nav-icon" onclick="window.location.href='index.html#shop'">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                <span class="text-[7px] uppercase font-bold">Shop</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 cursor-pointer nav-icon relative">
+                <div class="relative">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    <span class="cart-count-badge absolute -top-2 -right-2 bg-red-600 text-white text-[7px] w-4 h-4 rounded-full flex items-center justify-center hidden border-2 border-white">0</span>
+                </div>
+                <span class="text-[7px] uppercase font-bold">Bag</span>
+            </div>
+            <div class="flex flex-col items-center -mt-8 cursor-pointer nav-icon" onclick="window.location.href='index.html'">
+                <div class="bg-black text-white w-12 h-12 rounded-full flex items-center justify-center shadow-xl border-4 border-white">
+                    <i class="fa-solid fa-house text-lg"></i>
+                </div>
+            </div>
+            <a href="https://wa.me/6285880856341" style="text-decoration:none; color:inherit;" class="flex flex-col items-center gap-1 cursor-pointer nav-icon">
+                <i class="fa-solid fa-comment-dots text-lg"></i>
+                <span class="text-[7px] uppercase font-bold">Tanya</span>
+            </a>
+            <a href="about.html" style="text-decoration:none; color:inherit;" class="flex flex-col items-center gap-1 cursor-pointer nav-icon text-black">
+                <i class="fa-solid fa-circle-info text-lg"></i>
+                <span class="text-[7px] uppercase font-bold">About</span>
+            </a>
+        </nav>
+    </div>
+
+</body>
+</html>

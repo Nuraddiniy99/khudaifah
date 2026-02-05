@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Khudaifah | Modest Fashion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; color: #1a1a1a; -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3, h4, .serif { font-family: 'Playfair Display', serif; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        html { scroll-behavior: smooth; }
+        
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 20s linear infinite;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .aspect-premium { aspect-ratio: 4 / 5; }
+        .aspect-square-custom { aspect-ratio: 1 / 1; }
+        .aspect-banner { aspect-ratio: 16 / 10; }
+
+        .loader { border-top-color: #000; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { black: '#000000', white: '#ffffff', gray: '#f8f8f8', darkgray: '#333333' }
+                    },
+                    screens: {
+                        'xs': '375px'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white antialiased pb-24 md:pb-0">
+
+    <script>
+        // ────────────────────────────────────────────────
+        // CONFIG & STATE
+        // ────────────────────────────────────────────────
+        let allProducts = [];
+        let filteredProducts = [];
+        let cart = JSON.parse(localStorage.getItem('khudaifah_cart')) || [];
+        let isGiftBox = false;
+        const GIFT_BOX_PRICE = 2000;
+        const WA_NUMBER = "6285880856341";
+
+        // Ganti dengan URL GAS yang sama seperti di admin.html
+        const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxNVfvnyVP6ivviUr_1z_pY6-2RPzFlpadURBWGG_nstiG_Nkj6javbgWUM47wDKDSpRw/exec";
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(API_ENDPOINT + "?t=" + Date.now());
+                const data = await response.json();
+                allProducts = data.products || [];
+                
+                if (allProducts.length === 0) {
+                    console.warn("No products from API");
+                }
+
+                filteredProducts = allProducts;
+                renderHomeGrid(allProducts, false);
+                renderShopList(allProducts);
+            } catch (error) {
+                console.error("Fetch error:", error);
+                // Optional: tampilkan pesan atau dummy data
+            }
+        }
+
+        // ────────────────────────────────────────────────
+        // NAVIGATION
+        // ────────────────────────────────────────────────
+        function navigate(pageId, param = null) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-icon').forEach(el => el.classList.remove('text-black'));
+            
+            const target = document.getElementById(pageId);
+            if (target) target.classList.remove('hidden');
+            
+            window.scrollTo(0, 0);
+
+            if (pageId === 'pdp' && param) {
+                renderPDP(param);
+            } else if (pageId === 'shop') {
+                document.getElementById('nav-btn-shop').classList.add('text-black');
+            } else if (pageId === 'home') {
+                document.getElementById('nav-btn-home').classList.add('text-black');
+            }
+        }
+
+        // ────────────────────────────────────────────────
+        // CART FUNCTIONS
+        // ────────────────────────────────────────────────
+        function addToCart(product, color) {
+            cart.push({ 
+                ...product, 
+                selectedColor: color || (product.colors?.[0] || '#000000'), 
+                cartId: Date.now() + Math.random() 
+            });
+            saveCart();
+            openCart();
+            
+            const btn = document.getElementById('pdp-add-btn');
+            if (btn) {
+                const txt = btn.innerText;
+                btn.innerText = "ADDED ✓";
+                setTimeout(() => btn.innerText = txt, 1800);
+            }
+        }
+
+        function removeFromCart(cartId) {
+            cart = cart.filter(item => item.cartId !== cartId);
+            saveCart();
+        }
+
+        function saveCart() {
+            localStorage.setItem('khudaifah_cart', JSON.stringify(cart));
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const count = cart.length;
+            document.querySelectorAll('.cart-count-badge').forEach(el => {
+                el.innerText = count;
+                el.classList.toggle('hidden', count === 0);
+            });
+
+            const container = document.getElementById('cart-items');
+            let subtotal = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-400 py-10">
+                    <i class="fa-solid fa-basket-shopping text-5xl mb-4"></i>
+                    <p class="text-xs uppercase tracking-widest">Keranjang kosong</p>
+                </div>`;
+            } else {
+                container.innerHTML = cart.map(item => {
+                    subtotal += item.price;
+                    return `
+                    <div class="flex gap-4 mb-6 border-b border-gray-100 pb-4">
+                        <img src="${item.image}" class="w-16 h-20 object-cover bg-gray-100 rounded">
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold uppercase truncate">${item.name}</h4>
+                            <p class="text-[10px] text-gray-500 mt-1">Warna: <span class="inline-block w-3 h-3 rounded-full border" style="background:${item.selectedColor}"></span></p>
+                            <p class="text-sm font-medium mt-2">IDR ${item.price.toLocaleString()}</p>
+                        </div>
+                        <button onclick="removeFromCart(${item.cartId})" class="text-gray-400 hover:text-red-500">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>`;
+                }).join('');
+            }
+
+            const boxPrice = isGiftBox ? GIFT_BOX_PRICE : 0;
+            const grandTotal = subtotal + boxPrice;
+
+            document.getElementById('cart-subtotal').innerText = `IDR ${subtotal.toLocaleString()}`;
+            document.getElementById('cart-box-price').innerText = `+ IDR ${boxPrice.toLocaleString()}`;
+            document.getElementById('cart-total-grand').innerText = `IDR ${grandTotal.toLocaleString()}`;
+        }
+
+        function toggleGiftBox() {
+            isGiftBox = !isGiftBox;
+            updateCartUI();
+        }
+
+        function openCart() { 
+            document.getElementById('cart-drawer').classList.remove('translate-x-full');
+            updateCartUI();
+        }
+        
+        function closeCart() { 
+            document.getElementById('cart-drawer').classList.add('translate-x-full'); 
+        }
+
+        function checkoutWhatsApp() {
+            if (cart.length === 0) return alert("Keranjang Anda kosong.");
+            
+            let msg = "*PESANAN KHUDAIFAH*\n\n";
+            cart.forEach((i, idx) => {
+                msg += `${idx+1}. ${i.name}\n   Warna: ${i.selectedColor}\n   Harga: ${i.price.toLocaleString()}\n\n`;
+            });
+            if (isGiftBox) msg += `+ Kotak Hadiah: ${GIFT_BOX_PRICE.toLocaleString()}\n\n`;
+            msg += `*TOTAL: ${document.getElementById('cart-total-grand').innerText}*\n\nMohon konfirmasi stok & ongkir. Terima kasih!`;
+            
+            window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`);
+        }
+
+        // ────────────────────────────────────────────────
+        // RENDER PRODUCT LIST (Home & Shop)
+        // ────────────────────────────────────────────────
+function filterCategory(element) {
+    const catName = element.getAttribute('data-category');
+    const status = element.getAttribute('data-status');
+
+    if (status === 'comingsoon') {
+        // Tampilkan popup Coming Soon
+        const popup = document.getElementById('coming-soon-popup');
+        const categorySpan = document.getElementById('category-name');
+
+        if (categorySpan) categorySpan.textContent = catName;
+        popup.classList.remove('hidden');
+
+        // Animasi masuk
+        setTimeout(() => {
+            const inner = popup.querySelector('.transform');
+            if (inner) inner.classList.add('scale-100', 'opacity-100');
+        }, 10);
+
+        return;
+    }
+
+    // Jika available → tampilkan produk normal
+    document.getElementById('product-display-section').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('section-title').innerText = catName;
+
+    const filtered = allProducts.filter(p => p.category === catName);
+    renderHomeGrid(filtered.length > 0 ? filtered : [], true);
+}
+
+        function renderHomeGrid(products, isGridMode = false) {
+            const container = document.getElementById('new-arrivals-container');
+            
+            if (products.length === 0) {
+                container.innerHTML = '<div class="w-full text-center py-16 text-gray-400">Belum ada produk di kategori ini</div>';
+                container.className = "w-full";
+                return;
+            }
+
+            // Mode grid untuk kategori atau tampilan full
+            if (isGridMode) {
+                // Grid penuh: 2 kolom di mobile, 3 di md, 4 di lg
+                container.className = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6 lg:gap-8 pb-10 fade-in";
+                container.innerHTML = products.map(p => `
+                    <div class="group cursor-pointer">
+                        <div class="relative overflow-hidden aspect-premium bg-gray-100" onclick="navigate('pdp', '${p.id}')">
+                            <img src="${p.image}" class="object-cover w-full h-full group-hover:scale-105 transition duration-700" alt="${p.name}" loading="lazy">
+                        </div>
+                        <div class="mt-3 text-center md:text-left">
+                            <h3 class="text-xs md:text-sm font-bold uppercase tracking-tight">${p.name}</h3>
+                            <p class="text-[10px] md:text-xs text-gray-600 mt-1">IDR ${Number(p.price).toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } 
+            // Mode default (home awal) → horizontal scroll di semua ukuran layar
+            else {
+                container.className = "flex gap-5 overflow-x-auto no-scrollbar pb-10 snap-x snap-mandatory";
+                container.innerHTML = products.map(p => `
+                    <div class="min-w-[45%] sm:min-w-[40%] md:min-w-[30%] lg:min-w-[23%] snap-start cursor-pointer group" onclick="navigate('pdp', '${p.id}')">
+                        <div class="relative overflow-hidden aspect-premium bg-gray-100">
+                            <img src="${p.image}" class="object-cover w-full h-full group-hover:scale-105 transition duration-700" alt="${p.name}" loading="lazy">
+                        </div>
+                        <h3 class="text-xs font-bold uppercase mt-3 text-center">${p.name}</h3>
+                        <p class="text-[10px] text-gray-500 text-center">IDR ${Number(p.price).toLocaleString('id-ID')}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderShopList(products) {
+            const container = document.getElementById('shop-grid');
+            if (products.length === 0) {
+                container.innerHTML = '<p class="col-span-full text-center py-20 text-gray-400">Tidak ditemukan produk</p>';
+                return;
+            }
+            
+            container.innerHTML = products.map(p => `
+                <div class="group animate-fade-in">
+                    <div class="relative aspect-square-custom bg-gray-100 overflow-hidden cursor-pointer" onclick="navigate('pdp', ${p.id})">
+                        <img src="${p.image}" loading="lazy" class="object-cover w-full h-full group-hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="mt-3 px-1">
+                        <p class="text-[10px] text-gray-400 uppercase">${p.category}</p>
+                        <h3 class="text-sm font-bold uppercase cursor-pointer hover:underline" onclick="navigate('pdp', ${p.id})">${p.name}</h3>
+                        <p class="text-sm mt-1 font-medium">IDR ${p.price.toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchProducts(query) {
+            const q = query.toLowerCase().trim();
+            const filtered = allProducts.filter(p => 
+                p.name.toLowerCase().includes(q) || 
+                p.category.toLowerCase().includes(q) ||
+                String(p.id).includes(q)
+            );
+            renderShopList(filtered);
+        }
+
+
+        // ────────────────────────────────────────────────
+        // PRODUCT DETAIL PAGE (PDP) – versi terupdate 2025
+        // ────────────────────────────────────────────────
+        function renderPDP(id) {
+            const p = allProducts.find(x => x.id == id);
+            if (!p) {
+                document.getElementById('pdp-title').innerText = "Produk tidak ditemukan";
+                document.getElementById('pdp-img').src = 'https://via.placeholder.com/600?text=Not+Found';
+                return;
+            }
+
+            // Gambar utama
+            document.getElementById('pdp-img').src = p.image || 'https://via.placeholder.com/600?text=No+Image';
+            document.getElementById('pdp-img').alt = p.name || 'Produk Khudaifah';
+
+            // Nama & Harga
+            document.getElementById('pdp-title').innerText = p.name || 'Nama Produk';
+            document.getElementById('pdp-price').innerText = `IDR ${Number(p.price).toLocaleString('id-ID')}`;
+
+            // Deskripsi lengkap + detail tambahan
+            let descHTML = `
+                <div class="space-y-6">
+                    <div class="prose prose-sm max-w-none">
+                        <p class="mb-6 leading-relaxed">${p.desc || 'Tidak ada deskripsi tersedia untuk produk ini.'}</p>
+                    </div>
+            `;
+
+            if (p.material) {
+                descHTML += `
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Material</h4>
+                        <p class="text-gray-800">${p.material}</p>
+                    </div>
+                `;
+            }
+
+            if (p.care) {
+                descHTML += `
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Petunjuk Perawatan</h4>
+                        <p class="text-gray-800 whitespace-pre-line">${p.care}</p>
+                    </div>
+                `;
+            }
+
+            if (p.sizeChart) {
+                descHTML += `
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Size Chart</h4>
+                        <div class="text-sm text-gray-800 bg-gray-50 p-4 rounded border border-gray-200">
+                            ${p.sizeChart.includes('<') ? p.sizeChart : `<pre class="whitespace-pre-wrap font-sans">${p.sizeChart}</pre>`}
+                        </div>
+                    </div>
+                `;
+            }
+
+            descHTML += `</div>`;
+            document.getElementById('pdp-desc').innerHTML = descHTML;
+
+            // ── Warna ────────────────────────────────────────
+            const colorContainer = document.getElementById('pdp-colors');
+            let colors = [];
+
+            if (p.colors && p.colors.trim()) {
+                colors = p.colors.split(',').map(c => c.trim()).filter(Boolean);
+            } else {
+                colors = ['#000000']; // default jika kosong
+            }
+
+            // Kita asumsikan format di admin sekarang hanya hex (#rrggbb), tapi kalau mau support nama warna nanti bisa diubah lagi
+            colorContainer.innerHTML = colors.map((colorHex, i) => {
+                // Jika ingin tampilkan nama warna, butuh mapping terpisah (bisa ditambahkan di data nanti)
+                const colorName = colorHex; // sementara pakai hex sebagai nama, bisa diganti jika ada field nama warna
+
+                return `
+                    <div class="group relative">
+                        <div class="w-10 h-10 rounded-full border border-gray-300 cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-black transition-all duration-200 relative overflow-hidden shadow-sm"
+                            style="background-color: ${colorHex};"
+                            onclick="selectPDPColor(this, '${colorHex}')"
+                            title="${colorName}">
+                            ${i === 0 ? '<i class="fa-solid fa-check text-white text-base absolute inset-0 m-auto drop-shadow-sm"></i>' : ''}
+                        </div>
+                        <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            ${colorName}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            // Set warna default ke yang pertama
+            window.selectedPDPColor = colors[0];
+
+            // Bind tombol Add to Bag (tetap sama seperti sebelumnya)
+            const addBtn = document.getElementById('pdp-add-btn');
+            if (addBtn) {
+                addBtn.onclick = () => {
+                    if (!window.selectedPDPColor) {
+                        alert("Pilih warna terlebih dahulu");
+                        return;
+                    }
+                    addToCart(p, window.selectedPDPColor);
+                };
+            }
+        }
+
+        function selectPDPColor(el, color) {
+            // Hapus semua tanda check sebelumnya
+            document.querySelectorAll('#pdp-colors .fa-check').forEach(e => e.remove());
+
+            // Tambahkan check ke elemen yang diklik
+            el.innerHTML = '<i class="fa-solid fa-check text-white text-base absolute inset-0 m-auto drop-shadow-sm"></i>';
+
+            // Simpan warna yang dipilih
+            window.selectedPDPColor = color;
+
+            // Optional: bisa tambah efek transisi atau highlight di sini
+        }
+// Tutup popup Coming Soon
+document.getElementById('close-coming-soon')?.addEventListener('click', () => {
+    const popup = document.getElementById('coming-soon-popup');
+    const inner = popup.querySelector('.transform');
+    
+    if (inner) {
+        inner.classList.remove('scale-100', 'opacity-100');
+        inner.classList.add('scale-95', 'opacity-0');
+    }
+    
+    setTimeout(() => {
+        popup.classList.add('hidden');
+    }, 700);
+});
+
+// Klik di luar popup juga menutup
+document.getElementById('coming-soon-popup')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        document.getElementById('close-coming-soon').click();
+    }
+});
+        // ────────────────────────────────────────────────
+        // INIT
+        // ────────────────────────────────────────────────
+window.onload = () => {
+    loadProducts();
+    updateCartUI();
+
+    // Pasang listener untuk tombol close popup
+    const closeBtn = document.getElementById('close-coming-soon');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            const popup = document.getElementById('coming-soon-popup');
+            const inner = popup.querySelector('.transform');
+            
+            if (inner) {
+                inner.classList.remove('scale-100', 'opacity-100');
+                inner.classList.add('scale-95', 'opacity-0');
+            }
+            
+            setTimeout(() => {
+                popup.classList.add('hidden');
+            }, 700);
+        });
+    }
+
+    // Klik di luar popup juga menutup
+    const popup = document.getElementById('coming-soon-popup');
+    if (popup) {
+        popup.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBtn?.click();
+            }
+        });
+    }
+};
+    </script>
+
+    <!-- Header Desktop -->
+    <header class="hidden md:block sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <nav class="flex gap-8 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-800">
+                <a href="#" onclick="navigate('shop')">Shop</a>
+                <a href="#" onclick="navigate('home')">Home</a>
+                <a href="https://wa.me/6285880856341" target="_blank">Tanya</a>
+                <a href="/about.html">About</a>
+            </nav>
+            <div class="text-3xl font-serif font-bold tracking-[0.3em] cursor-pointer flex items-center gap-3" onclick="navigate('home')">
+                <img src="assets/logoteks.png" alt="Logo" class="h-10 w-auto object-contain">
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="relative group">
+                    <input type="text" placeholder="SEARCH..." class="border-b border-transparent focus:border-black outline-none text-xs w-24 focus:w-48 transition-all duration-500 bg-transparent text-right" onkeyup="if(event.key==='Enter'){navigate('shop');document.getElementById('shop-search').value=this.value;searchProducts(this.value)}">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </div>
+                <div class="relative cursor-pointer" onclick="openCart()">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    <span class="cart-count-badge absolute -top-1 -right-2 bg-black text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Header Mobile -->
+    <header class="md:hidden fixed top-0 w-full z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 flex justify-center py-4">
+        <div class="text-2xl font-serif font-bold tracking-[0.3em] cursor-pointer flex items-center gap-2" onclick="navigate('home')">
+            <img src="assets/logoteks.png" alt="Logo" class="h-8 w-auto object-contain">
+        </div>
+    </header>
+
+    <!-- Halaman Home -->
+    <div id="home" class="page-section pt-16 md:pt-0">
+
+        <div class="bg-black text-white py-3 overflow-hidden">
+            <div class="animate-marquee whitespace-nowrap text-[9px] md:text-xs font-bold uppercase tracking-[0.2em]">
+                Free Shipping orders > IDR 500.000 • New Collection • Gift Box Promo • Ramadhan Ready • 
+            </div>
+        </div>
+
+        <!-- Hero Banner -->
+        <section class="relative h-[60vh] md:h-[85vh] flex items-center justify-center overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?q=80&w=2000" class="absolute w-full h-full object-cover grayscale brightness-90" alt="Hero">
+            <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition duration-500">
+                <div class="text-center px-4">
+                    <h2 class="text-white text-2xl md:text-3xl font-serif tracking-[0.3em] uppercase border-2 border-white/50 p-3 md:p-5 backdrop-blur-sm">
+                        Special Offers
+                    </h2>
+                    <h2 style="color: aliceblue; margin-top: 20px;">halo askjdg ahsdgy akusdg </h2>
+            </div>
+        </section>
+
+        <!-- Galeri Unik & Elegan - Diletakkan di atas Shop by Category -->
+        <section class="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12 md:mb-16">
+                    <h2 class="text-3xl md:text-5xl font-serif tracking-[0.15em] text-black">Khudaifah Moments</h2>
+                    <p class="mt-3 text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
+                        Koleksi terbaik yang menggabungkan kesederhanaan modern dan keanggunan timeless
+                    </p>
+                </div>
+
+                <!-- Galeri Masonry + Asimetris dengan efek modern -->
+                <div class="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 space-y-4 md:space-y-6">
+                    <!-- Item 1 -->
+                    <div class="break-inside-avoid group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 hover:-rotate-1 hover:scale-[1.03]">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800" 
+                                class="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110" 
+                                alt="Galeri 1">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </div>
+                        <div class="absolute bottom-4 left-4 right-4 text-white text-sm font-medium opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                            Signature Collection
+                        </div>
+                    </div>
+
+                    <!-- Item 2 - lebih tinggi -->
+                    <div class="break-inside-avoid group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 hover:rotate-1 hover:scale-[1.03] md:mt-8">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1621184455862-c163dfb30e0f?q=80&w=800" 
+                                class="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110" 
+                                alt="Galeri 2">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="break-inside-avoid group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 hover:-rotate-2 hover:scale-[1.04]">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1618354691552-1205a225f9d9?q=80&w=800" 
+                                class="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110" 
+                                alt="Galeri 3">
+                        </div>
+                    </div>
+
+                    <!-- Item 4 - lebih lebar di desktop -->
+                    <div class="break-inside-avoid group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 hover:rotate-1 md:col-span-2 lg:col-span-1">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?q=80&w=1200" 
+                                class="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110" 
+                                alt="Galeri 4">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </div>
+                        <div class="absolute bottom-6 left-6 text-white text-base md:text-lg font-serif opacity-0 group-hover:opacity-100 translate-y-6 group-hover:translate-y-0 transition-all duration-700">
+                            Elegance Redefined
+                        </div>
+                    </div>
+
+                    <!-- Item 5 -->
+                    <div class="break-inside-avoid group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 hover:-rotate-1">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1605766572488-6de6c6f1d4e0?q=80&w=800" 
+                                class="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110" 
+                                alt="Galeri 5">
+                        </div>
+                    </div>
+
+                    <!-- Item 6 -->
+                    <div class="break-inside-avoid group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 hover:rotate-2 md:mt-10">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?q=80&w=800" 
+                                class="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-110" 
+                                alt="Galeri 6">
+                        </div>
+                    </div>
+
+                    <!-- Tambah item sesuai kebutuhan, minimal 5-8 untuk efek masonry bagus -->
+                </div>
+            </div>
+        </section>
+
+<!-- Category Grid -->
+<section class="py-12 md:py-20 container mx-auto px-4">
+    <div class="text-center mb-10">
+        <h2 class="text-3xl md:text-4xl font-serif">Shop by Category</h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-6">
+
+        <div class="group cursor-pointer text-center" 
+             data-category="Kurta Modern" 
+             data-status="available"
+             onclick="filterCategory(this)">
+            <div class="overflow-hidden aspect-premium mb-3 relative">
+                <img src="https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?w=500" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></div>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-widest border-b border-transparent group-hover:border-black pb-1">
+                Kurta Modern
+            </span>
+        </div>
+
+        <div class="group cursor-pointer text-center" 
+             data-category="Thobe & Gamis" 
+             data-status="comingsoon"
+             onclick="filterCategory(this)">
+            <div class="overflow-hidden aspect-premium mb-3 relative">
+                <img src="https://images.unsplash.com/photo-1609357601556-993f4129532f?w=500" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-widest border-b border-transparent group-hover:border-black pb-1">
+                Thobe & Gamis
+            </span>
+        </div>
+
+        <div class="group cursor-pointer text-center" 
+             data-category="Kemeja Koko" 
+             data-status="available"
+             onclick="filterCategory(this)">
+            <div class="overflow-hidden aspect-premium mb-3 relative">
+                <img src="https://images.unsplash.com/photo-1617137968427-85924c800a22?w=500" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-widest border-b border-transparent group-hover:border-black pb-1">
+                Kemeja Koko
+            </span>
+        </div>
+
+        <div class="group cursor-pointer text-center" 
+             data-category="Celana Sirwal" 
+             data-status="comingsoon"
+             onclick="filterCategory(this)">
+            <div class="overflow-hidden aspect-premium mb-3 relative">
+                <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=500" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-widest border-b border-transparent group-hover:border-black pb-1">
+                Celana Sirwal
+            </span>
+        </div>
+
+        <div class="group cursor-pointer text-center" 
+             data-category="Outerwear" 
+             data-status="comingsoon"
+             onclick="filterCategory(this)">
+            <div class="overflow-hidden aspect-premium mb-3 relative">
+                <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-widest border-b border-transparent group-hover:border-black pb-1">
+                Outerwear
+            </span>
+        </div>
+
+        <div class="group cursor-pointer text-center" 
+             data-category="Aksesoris" 
+             data-status="comingsoon"
+             onclick="filterCategory(this)">
+            <div class="overflow-hidden aspect-premium mb-3 relative">
+                <img src="https://images.unsplash.com/photo-1544441893-675973e31985?w=500" 
+                     class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-widest border-b border-transparent group-hover:border-black pb-1">
+                Aksesoris
+            </span>
+        </div>
+
+    </div>
+</section>
+
+        <!-- Produk Section -->
+        <section id="product-display-section" class="py-10 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-end mb-8">
+                    <h2 id="section-title" class="text-3xl font-serif">New Arrivals</h2>
+                    <button onclick="navigate('shop')" class="text-xs uppercase hover:text-gray-600">Lihat Semua →</button>
+                </div>
+                <div id="new-arrivals-container" class="flex gap-5 overflow-x-auto no-scrollbar pb-8">
+                    <div class="w-full text-center py-20"><div class="loader w-8 h-8 rounded-full border-4 border-t-black animate-spin"></div></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Halaman Shop -->
+    <div id="shop" class="page-section hidden pt-24 md:pt-32 pb-20">
+        <div class="container mx-auto px-4">
+            <div class="max-w-2xl mx-auto mb-12 text-center">
+                <h2 class="text-4xl font-serif mb-6">The Shop</h2>
+                <div class="relative">
+                    <input id="shop-search" type="text" onkeyup="searchProducts(this.value)" placeholder="Cari nama, kategori atau ID..." class="w-full border-b-2 border-black py-4 text-xl outline-none bg-transparent text-center">
+                    <i class="fa-solid fa-magnifying-glass absolute right-0 top-5 text-gray-400"></i>
+                </div>
+            </div>
+            <div id="shop-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </div>
+    </div>
+
+    <!-- Halaman PDP (Product Detail) -->
+    <div id="pdp" class="page-section hidden container mx-auto px-4 py-16 md:py-24">
+        <button onclick="navigate('home')" class="mb-6 text-xs font-bold uppercase tracking-widest hover:underline"><i class="fa-solid fa-arrow-left mr-2"></i>Kembali</button>
+        
+        <div class="flex flex-col md:flex-row gap-10 md:gap-16">
+            <div class="w-full md:w-1/2">
+                <img id="pdp-img" class="w-full h-auto object-cover" alt="Produk">
+            </div>
+
+            <div class="w-full md:w-1/2">
+                <h1 id="pdp-title" class="text-4xl md:text-5xl font-serif mb-4">Loading...</h1>
+                <p id="pdp-price" class="text-3xl font-light mb-8 text-gray-700">IDR 0</p>
+
+                <div class="mb-8">
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Pilihan Warna</p>
+                    <div id="pdp-colors" class="flex flex-wrap gap-4 mt-6"></div>
+                </div>
+
+                <div class="prose text-gray-600 leading-relaxed mb-10">
+                    <div id="pdp-desc">Memuat deskripsi produk...</div>
+                </div>
+
+                <button id="pdp-add-btn" class="w-full bg-black text-white py-5 text-sm font-bold uppercase tracking-[0.3em] hover:bg-gray-800 transition">
+                    Tambah ke Keranjang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Drawer -->
+    <div id="cart-drawer" class="fixed inset-0 z-[60] translate-x-full transition-transform duration-500">
+        <div class="absolute inset-0 bg-black/50" onclick="closeCart()"></div>
+        <div class="absolute right-0 top-0 h-full w-full md:w-96 bg-white flex flex-col">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h2 class="text-xl font-serif">Keranjang (<span class="cart-count-badge">0</span>)</h2>
+                <button onclick="closeCart()"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <div id="cart-items" class="flex-1 overflow-y-auto p-6"></div>
+            <div class="p-6 border-t">
+                <div class="flex items-center gap-3 mb-6 cursor-pointer" onclick="document.getElementById('gift-box').click()">
+                    <input type="checkbox" id="gift-box" class="w-5 h-5" onchange="toggleGiftBox()">
+                    <div>
+                        <p class="text-sm font-bold">Kotak Hadiah Eksklusif</p>
+                        <p class="text-xs text-gray-500">+IDR 2.000</p>
+                    </div>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between"><span>Subtotal</span><span id="cart-subtotal">IDR 0</span></div>
+                    <div class="flex justify-between"><span>Kotak</span><span id="cart-box-price">IDR 0</span></div>
+                    <div class="flex justify-between font-bold text-lg border-t pt-3"><span>Total</span><span id="cart-total-grand">IDR 0</span></div>
+                </div>
+                <button onclick="checkoutWhatsApp()" class="mt-6 w-full bg-green-600 text-white py-4 rounded font-bold flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp"></i> Checkout via WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav Mobile -->
+        <div class="md:hidden fixed bottom-6 left-4 right-4 z-50">
+            <nav class="glass-nav rounded-2xl flex justify-between items-center px-5 py-2 text-gray-500">
+                
+                <div class="flex flex-col items-center gap-1 cursor-pointer nav-icon" id="nav-btn-shop" onclick="navigate('shop')">
+                    <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                    <span class="text-[7px] uppercase font-bold">Shop</span>
+                </div>
+
+                <div class="flex flex-col items-center gap-1 cursor-pointer nav-icon relative" onclick="openCart()">
+                    <div class="relative">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                        <span class="cart-count-badge absolute -top-2 -right-2 bg-red-600 text-white text-[7px] w-4 h-4 rounded-full flex items-center justify-center hidden border-2 border-white">0</span>
+                    </div>
+                    <span class="text-[7px] uppercase font-bold">Bag</span>
+                </div>
+                
+                <div class="flex flex-col items-center -mt-8 cursor-pointer nav-icon text-black" id="nav-btn-home" onclick="navigate('home')">
+                    <div class="bg-black text-white w-12 h-12 rounded-full flex items-center justify-center shadow-xl border-4 border-white">
+                        <i class="fa-solid fa-house text-lg"></i>
+                    </div>
+                </div>
+
+                <a href="https://wa.me/6285880856341" style="text-decoration:none; color:inherit;" class="flex flex-col items-center gap-1 cursor-pointer nav-icon">
+                    <i class="fa-solid fa-comment-dots text-lg"></i>
+                    <span class="text-[7px] uppercase font-bold">Tanya</span>
+                </a>
+
+                <a href="/about.html" style="text-decoration:none; color:inherit;" class="flex flex-col items-center gap-1 cursor-pointer nav-icon">
+                    <i class="fa-solid fa-circle-info text-lg"></i>
+                    <span class="text-[7px] uppercase font-bold">About</span>
+                </a>
+
+            </nav>
+        </div>
+
+    <!-- Footer (sama seperti sebelumnya, bisa disesuaikan) -->
+    <footer class="bg-black text-white pt-20 pb-32 md:pb-10 mt-20">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-[10px] uppercase tracking-widest">
+            <div class="md:col-span-1">
+                <h4 class="text-2xl font-serif font-bold tracking-[0.2em] mb-8">KHUDAIFAH</h4>
+                <p class="text-gray-500 normal-case tracking-normal mb-8 leading-relaxed">Defining modern modesty with timeless elegance and superior craftsmanship for the visionary individual.</p>
+                <div class="flex gap-6 text-lg text-gray-400">
+                    <a href="https://www.instagram.com/khudaifah.fashions" target="_blank" class="hover:text-white transition">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+
+                    <a href="https://www.tiktok.com/@khudaifah.fashion" target="_blank" class="hover:text-white transition">
+                        <i class="fa-brands fa-tiktok"></i>
+                    </a>
+
+                    <a href="https://wa.me/628123456789" target="_blank" class="hover:text-white transition">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-bold mb-6 text-gray-300">Discovery</h4>
+                <ul class="space-y-3 text-gray-500">
+                    <li class="hover:text-white cursor-pointer transition">New Arrivals</li>
+                    <li class="hover:text-white cursor-pointer transition">Lookbook 2026</li>
+                    <li class="hover:text-white cursor-pointer transition">Editor's Pick</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-6 text-gray-300">Support</h4>
+                <ul class="space-y-3 text-gray-500">
+                    <li class="hover:text-white cursor-pointer transition">Shipping & Returns</li>
+                    <li class="hover:text-white cursor-pointer transition">Size Guide</li>
+                    <li class="hover:text-white cursor-pointer transition">FAQ</li>
+                    <li class="hover:text-white cursor-pointer transition">Contact Us</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-6 text-gray-300">Newsletter</h4>
+                <p class="normal-case tracking-normal text-gray-500 mb-6">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                <div class="flex border-b border-gray-800 pb-2 group focus-within:border-white transition">
+                    <input type="email" placeholder="ENTER YOUR EMAIL" class="bg-transparent w-full outline-none text-[10px] placeholder-gray-600 focus:placeholder-gray-400">
+                    <button class="font-bold text-gray-500 hover:text-white transition">SUBMIT</button>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-gray-800 text-[9px] mt-20 pt-8 border-t border-gray-900">
+            &copy; 2026 KHUDAIFAH OFFICIAL. POWERED BY VISION.
+        </div>
+    </footer>
+<!-- Coming Soon Popup (Glassmorphism) -->
+<div id="coming-soon-popup" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-500">
+    <div class="relative w-11/12 max-w-md transform scale-95 opacity-0 transition-all duration-700 ease-out">
+        <div class="glass-nav rounded-3xl overflow-hidden shadow-2xl border border-white/20 backdrop-blur-xl bg-white/10 p-8 md:p-10 text-center">
+            <div class="mb-6">
+                <div class="inline-block p-5 rounded-full bg-white/10 backdrop-blur-md mb-4">
+                    <i class="fa-solid fa-clock-rotate-left text-5xl text-white/90"></i>
+                </div>
+                <h3 class="text-2xl md:text-3xl font-serif font-bold text-white tracking-wide">
+                    Coming Soon
+                </h3>
+            </div>
+            
+            <p class="text-white/80 text-base md:text-lg mb-8 leading-relaxed">
+                Koleksi <span class="font-semibold" id="category-name">Kategori</span> sedang dalam persiapan.<br>
+                Segera hadir dengan desain terbaik dari Khudaifah.
+            </p>
+
+            <button id="close-coming-soon" 
+                    class="px-8 py-4 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-bold uppercase tracking-wider rounded-full transition-all duration-300 hover:scale-105 active:scale-95 border border-white/30">
+                Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Khudaifah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fcfcfc; color: #1a1a1a; margin: 0; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .input-field { 
+            width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.125rem; 
+            outline: none; transition: border-color 0.2s; font-size: 0.875rem; box-sizing: border-box; 
+        }
+        .input-field:focus { border-color: #000000; }
+        label { 
+            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; 
+            color: #6b7280; margin-bottom: 0.25rem; display: block; 
+        }
+        .btn-black { 
+            background-color: #000000; color: #ffffff; padding: 0.75rem 1.5rem; 
+            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; 
+            border: none; cursor: pointer; transition: background-color 0.2s; display: inline-block; width: 100%; 
+        }
+        .btn-black:hover { background-color: #1f2937; }
+        .btn-black:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .color-preview { width: 36px; height: 36px; border-radius: 9999px; border: 1px solid #d1d5db; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .color-item { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav class="bg-black text-white py-4 px-8 flex justify-between items-center sticky top-0 z-50">
+        <div class="text-xl font-serif tracking-[0.2em]">KHUDAIFAH <span class="text-[10px] font-sans tracking-normal opacity-50 ml-2">ADMIN</span></div>
+        <div class="flex gap-6 text-[10px] font-bold uppercase tracking-widest">
+            <a href="index.html" class="hover:text-gray-400">View Site</a>
+            <button onclick="logout()" class="text-red-400">Logout</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-10 max-w-6xl">
+        <div class="flex flex-col md:flex-row gap-10">
+            <!-- Form -->
+            <div class="w-full md:w-1/3">
+                <div class="bg-white p-6 border border-gray-100 shadow-sm sticky top-24">
+                    <h2 class="serif text-2xl mb-6">Tambah / Edit Produk</h2>
+                    <form id="productForm" class="space-y-5">
+                        <div>
+                            <label>Nama Produk</label>
+                            <input type="text" id="name" class="input-field" placeholder="Contoh: Signature Shawl" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label>Harga (IDR)</label>
+                                <input type="number" id="price" class="input-field" placeholder="0" min="0" required>
+                            </div>
+                            <div>
+                                <label>Kategori</label>
+                                <select id="category" class="input-field" required>
+                                    <option value="">Pilih kategori</option>
+                                    <option value="Kurta Modern">Kurta Modern</option>
+                                    <option value="Thobe & Gamis">Thobe & Gamis</option>
+                                    <option value="Kemeja Koko">Kemeja Koko</option>
+                                    <option value="Celana Sirwal">Celana Sirwal</option>
+                                    <option value="Outerwear">Outerwear</option>
+                                    <option value="Aksesoris">Aksesoris</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label>Deskripsi Lengkap</label>
+                            <textarea id="desc" class="input-field h-28" placeholder="Deskripsi utama produk..."></textarea>
+                        </div>
+                        <div>
+                            <label>Material</label>
+                            <input type="text" id="material" class="input-field" placeholder="Contoh: Toyobo Premium, Katun Jepang...">
+                        </div>
+                        <div>
+                            <label>Petunjuk Perawatan</label>
+                            <textarea id="care" class="input-field h-20" placeholder="Contoh: Cuci kering, Jangan disetrika panas..."></textarea>
+                        </div>
+                        <div>
+                            <label>Size Chart (HTML atau teks)</label>
+                            <textarea id="sizeChart" class="input-field h-32 font-mono text-xs" 
+                                placeholder="Contoh format sederhana:\nUkuran | Lingkar Dada | Panjang\nS | 96 cm | 68 cm\nM | 102 cm | 70 cm\n..."></textarea>
+                            <p class="text-[10px] text-gray-500 mt-1">Bisa teks atau HTML sederhana</p>
+                        </div>
+                        <div>
+                            <label>Varian Warna</label>
+                            <div id="colorList" class="mt-2 mb-3 space-y-2"></div>
+                            <div class="flex gap-3 items-center">
+                                <input type="color" id="colorPicker" value="#000000" class="w-10 h-10 p-1 rounded cursor-pointer">
+                                <input type="text" id="colorName" class="input-field flex-1" placeholder="Nama warna (opsional)">
+                                <button type="button" id="addColorBtn" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 text-xs font-bold uppercase tracking-wider">Tambah Warna</button>
+                            </div>
+                            <input type="hidden" id="colors" value="">
+                        </div>
+                        <div>
+                            <label>Upload Foto Produk</label>
+                            <input type="file" id="imageFile" class="input-field py-2" accept="image/*" required>
+                            <p class="text-[10px] text-gray-500 mt-1">Foto utama produk (akan diupload ke GDrive)</p>
+                        </div>
+                        <input type="hidden" id="productId">
+                        <div class="pt-4">
+                            <button type="submit" id="submitBtn" class="btn-black">Simpan Produk</button>
+                            <button type="button" id="cancelBtn" class="hidden text-xs text-red-500 underline mt-3">Batal Edit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Daftar Produk -->
+            <div class="w-full md:w-2/3">
+                <div class="flex justify-between items-end mb-6">
+                    <h2 class="serif text-2xl">Daftar Produk</h2>
+                    <span class="text-[10px] text-gray-400 uppercase font-bold" id="productCount">Total: 0 Produk</span>
+                </div>
+                <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100">
+                                <th class="p-4 text-[10px] uppercase tracking-widest font-bold text-gray-400">Produk</th>
+                                <th class="p-4 text-[10px] uppercase tracking-widest font-bold text-gray-400">Kategori</th>
+                                <th class="p-4 text-[10px] uppercase tracking-widest font-bold text-gray-400">Harga</th>
+                                <th class="p-4 text-[10px] uppercase tracking-widest font-bold text-gray-400">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productList">
+                            <tr><td colspan="4" class="p-12 text-center text-gray-500">Memuat produk...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxNVfvnyVP6ivviUr_1z_pY6-2RPzFlpadURBWGG_nstiG_Nkj6javbgWUM47wDKDSpRw/exec";
+        let products = [];
+        let tempColors = [];
+
+        async function fetchProducts() {
+            const tbody = document.getElementById('productList');
+            tbody.innerHTML = `<tr><td colspan="4" class="p-12 text-center text-gray-500">Memuat produk...</td></tr>`;
+
+            try {
+                const response = await fetch(GAS_WEB_APP_URL);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                products = Array.isArray(data.products) ? data.products : [];
+                renderProducts();
+            } catch (err) {
+                console.error("Fetch error:", err);
+                tbody.innerHTML = `<tr><td colspan="4" class="p-12 text-center text-red-600">Gagal memuat data dari server</td></tr>`;
+                alert("Gagal memuat produk. Periksa console browser (F12)");
+            }
+        }
+
+        function renderProducts() {
+            const tbody = document.getElementById('productList');
+            document.getElementById('productCount').innerText = `Total: ${products.length} Produk`;
+
+            if (products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-12 text-center text-gray-500">Belum ada produk</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = products.map(p => {
+                const safeId = String(p.id || '');
+                return `
+                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${p.image || 'https://via.placeholder.com/40'}" class="w-10 h-12 object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/40'">
+                                <div>
+                                    <p class="text-xs font-bold uppercase">${p.name || '(tanpa nama)'}</p>
+                                    <p class="text-[9px] text-gray-400">ID: ${safeId}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4 text-xs text-gray-500">${p.category || '-'}</td>
+                        <td class="p-4 text-xs font-semibold">IDR ${Number(p.price || 0).toLocaleString('id-ID')}</td>
+                        <td class="p-4 flex gap-4">
+                            <button onclick="editProduct('${safeId}')" class="text-blue-600 hover:text-blue-800 transition">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteProduct('${safeId}')" class="text-red-600 hover:text-red-800 transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).reverse().join('');
+        }
+
+        function updateColorList() {
+            const container = document.getElementById('colorList');
+            container.innerHTML = tempColors.map((c, i) => `
+                <div class="color-item">
+                    <div class="color-preview" style="background-color: ${c.value}"></div>
+                    <span class="text-xs flex-1">${c.name || c.value}</span>
+                    <button type="button" onclick="removeColor(${i})" class="text-red-400 hover:text-red-600">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+            document.getElementById('colors').value = tempColors.map(c => c.value).join(',');
+        }
+
+        function addColor() {
+            const picker = document.getElementById('colorPicker');
+            const nameInput = document.getElementById('colorName');
+            const value = picker.value.trim();
+            if (value && !tempColors.some(c => c.value === value)) {
+                tempColors.push({ value: value, name: nameInput.value.trim() || value });
+                updateColorList();
+                nameInput.value = '';
+            }
+        }
+
+        function removeColor(index) {
+            tempColors.splice(index, 1);
+            updateColorList();
+        }
+
+        function editProduct(id) {
+            const p = products.find(item => String(item.id) === String(id));
+            if (!p) {
+                alert("Produk tidak ditemukan");
+                return;
+            }
+            document.getElementById('productId').value = p.id;
+            document.getElementById('name').value = p.name || '';
+            document.getElementById('price').value = p.price || '';
+            document.getElementById('category').value = p.category || '';
+            document.getElementById('desc').value = p.desc || '';
+            document.getElementById('material').value = p.material || '';
+            document.getElementById('care').value = p.care || '';
+            document.getElementById('sizeChart').value = p.sizeChart || '';
+
+            tempColors = [];
+            if (p.colors) {
+                const arr = p.colors.split(',').map(c => c.trim()).filter(Boolean);
+                tempColors = arr.map(v => ({ value: v, name: v }));
+            }
+            updateColorList();
+
+            document.getElementById('imageFile').required = false;
+            document.getElementById('submitBtn').innerText = "Update Produk";
+            document.getElementById('cancelBtn').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.getElementById('cancelBtn').onclick = () => {
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = "";
+            tempColors = [];
+            updateColorList();
+            document.getElementById('submitBtn').innerText = "Simpan Produk";
+            document.getElementById('cancelBtn').classList.add('hidden');
+            document.getElementById('imageFile').required = true;
+        };
+
+        document.getElementById('addColorBtn').onclick = addColor;
+        document.getElementById('colorPicker').addEventListener('change', addColor);
+
+        document.getElementById('productForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const id = document.getElementById('productId').value.trim();
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            let payload = {
+                action: id ? "UPDATE" : "ADD",
+                id: id || null,
+                name: document.getElementById('name').value.trim(),
+                price: document.getElementById('price').value,
+                category: document.getElementById('category').value,
+                desc: document.getElementById('desc').value.trim(),
+                material: document.getElementById('material').value.trim(),
+                care: document.getElementById('care').value.trim(),
+                sizeChart: document.getElementById('sizeChart').value.trim(),
+                colors: document.getElementById('colors').value,
+                existingImage: id ? products.find(p => String(p.id) === id)?.image : null
+            };
+
+            const fileInput = document.getElementById('imageFile');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    payload.data = reader.result.split(',')[1];
+                    payload.filename = file.name;
+                    payload.mimeType = file.type;
+                    await sendData(payload);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await sendData(payload);
+            }
+        };
+
+        async function sendData(payload) {
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error("Gagal menyimpan");
+                alert("Produk berhasil disimpan!");
+                document.getElementById('productForm').reset();
+                document.getElementById('productId').value = "";
+                tempColors = [];
+                updateColorList();
+                document.getElementById('submitBtn').innerText = "Simpan Produk";
+                document.getElementById('cancelBtn').classList.add('hidden');
+                document.getElementById('imageFile').required = true;
+                fetchProducts();
+            } catch (err) {
+                console.error(err);
+                alert("Gagal menyimpan data");
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Yakin ingin menghapus produk ini?')) return;
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "DELETE", id: String(id) })
+                });
+                if (!res.ok) throw new Error("Gagal menghapus");
+                alert("Produk berhasil dihapus");
+                fetchProducts();
+            } catch (err) {
+                console.error(err);
+                alert("Gagal menghapus produk");
+            }
+        }
+
+        window.onload = fetchProducts;
+    </script>
+</body>
+</html>
